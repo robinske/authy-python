@@ -33,13 +33,21 @@ class PhonesTest(unittest.TestCase):
         self.assertTrue(phone.ok(), msg="errors: {0}".format(phone.errors()))
         self.assertRegexpMatches(phone['message'], 'Text message sent')
 
+    def test_verification_check_no_pending(self):
+        phone = self.phones.verification_check(self.phone_number, self.country_code, '1234')
+        self.assertFalse(phone.ok(), msg="errors: {0}".format(phone.errors()))
+
+        expected_message = 'No pending verifications for +{0} {1} found.'.format(test_helper.COUNTRY_CODE, test_helper.PHONE_NUMBER)
+        self.assertEquals(phone.errors()['message'], expected_message)
+
     def test_verification_check_incorrect_code(self):
+        phone = self.phones.verification_start(self.phone_number, self.country_code)
         phone = self.phones.verification_check(self.phone_number, self.country_code, '1234')
         self.assertFalse(phone.ok(), msg="errors: {0}".format(phone.errors()))
         self.assertRegexpMatches(phone.errors()['message'], 'Verification code is incorrect.')
 
     def test_verification_check(self):
-        self.phones.verification_start(self.phone_number, self.country_code)
+        phone = self.phones.verification_start(self.phone_number, self.country_code)
         phone = self.phones.verification_check(self.phone_number, self.country_code, '0000')
         self.assertTrue(phone.ok(), msg="errors: {0}".format(phone.errors()))
         self.assertRegexpMatches(phone['message'], 'Verification code is correct')
